@@ -22,6 +22,7 @@ class Generator(nn.Module):
         )
 
         for i in range(num_layers):
+            # Transposed convolution, h*2, w*2
             self.generator.add_module(
                 name=f'conv{i}',
                 module=nn.ConvTranspose2d(
@@ -44,6 +45,7 @@ class Generator(nn.Module):
 
             c = c // 2
 
+        # Convolution, change num of changnels
         self.generator.add_module(
             name='final',
             module=nn.Conv2d(
@@ -66,30 +68,33 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, image_size=(3, 3024, 4032), num_filters=64, num_layers=5):
+    def __init__(self, image_size=(3, 3024, 4032), num_filters_list=None):
+        if num_filters_list is None:
+            num_filters_list = [64, 128, 256, 512, 1024]
         super().__init__()
 
         self.image_size = image_size
         c, h, w = image_size
 
         # Determine the size of the input to the first Conv2d layer
-        s = 2 ** (num_layers - 1)  # s = 16
-        h_out = (h + 2 - 1) // s  # h = 189
-        w_out = (w + 2 - 1) // s  # w = 252
+        num_layers = len(num_filters_list)
+        s = 2 ** (num_layers - 1)
+        h_out = (h + 2 - 1) // s
+        w_out = (w + 2 - 1) // s
 
         # Convolutional layers
         layers = []
-        for _ in range(num_layers):
+        for i in range(num_layers):
             layers.extend(
                 (
-                    nn.Conv2d(c, num_filters, 4, 2, 1),
-                    nn.BatchNorm2d(num_filters),
+                    nn.Conv2d(c, num_filters_list[i], 4, 2, 1),  # size/2
+                    nn.BatchNorm2d(num_filters_list[i]),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
-            c = num_filters
-            h_out = (h_out + 2 - 1) // 2  # h = 65 33 17 9 5
-            w_out = (w_out + 2 - 1) // 2  # w = 126 63 32 16 8
+            c = num_filters_list[i]
+            h_out = (h_out + 2 - 1) // 2
+            w_out = (w_out + 2 - 1) // 2
 
         in_features = c * h_out * w_out
 

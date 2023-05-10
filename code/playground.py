@@ -1,62 +1,42 @@
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-import torch.optim as optim
+import torchvision.transforms as transforms
+from PIL import Image
 
+# 定义卷积层
+conv_layer = nn.Conv2d(in_channels=3, out_channels=16,
+                       kernel_size=3, stride=1, padding=1)
 
-# 加载数据集
-x = torch.tensor([[0, 0, 0], [0, 1, 1], [1, 0, 1],
-                 [1, 1, 0]], dtype=torch.float)
-y = torch.tensor([[0, 0], [1, 1], [1, 0], [0, 1]], dtype=torch.float)
+# 定义转置卷积层
+transpose_layer = nn.ConvTranspose2d(
+    in_channels=16, out_channels=3, kernel_size=3, stride=1, padding=1)
 
-# 定义模型
+# 读入图片
+image = Image.open('.\test_img.png')
+transform = transforms.Compose(
+    [transforms.Resize((256, 256)), transforms.ToTensor()])
+image = transform(image).unsqueeze(0)
 
+# 执行卷积操作
+conv_output = conv_layer(image)
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.fc1 = nn.Linear(3, 4)
-        self.fc2 = nn.Linear(4, 2)
-        self.sigmoid = nn.Sigmoid()
+# 执行转置卷积操作
+transpose_output = transpose_layer(conv_output)
 
-    def forward(self, x):
-        x = self.fc1(x)
-        x = self.sigmoid(x)
-        x = self.fc2(x)
-        x = self.sigmoid(x)
-        return x
+# 显示原始图片、卷积结果和转置卷积结果
 
+plt.figure(figsize=(10, 10))
+plt.subplot(1, 3, 1)
+plt.title("Original Image")
+plt.imshow(image.squeeze().permute(1, 2, 0))
 
-# 初始化模型和损失函数
-net = Net()
-criterion = nn.BCELoss()
-optimizer = optim.SGD(net.parameters(), lr=0.1)
+plt.subplot(1, 3, 2)
+plt.title("Convolution Output")
+plt.imshow(conv_output.squeeze().detach().permute(1, 2, 0))
 
-# 训练模型
-for epoch in range(1000):
-    # 将梯度归零
-    optimizer.zero_grad()
+plt.subplot(1, 3, 3)
+plt.title("Transpose Convolution Output")
+plt.imshow(transpose_output.squeeze().detach().permute(1, 2, 0))
 
-    # 前向传播
-    outputs = net(x)
-
-    # 计算损失函数
-    loss = criterion(outputs, y)
-
-    # 反向传播
-    loss.backward()
-
-    # 更新参数
-    optimizer.step()
-
-    # 打印损失函数
-    if (epoch+1) % 100 == 0:
-        print('Epoch [%d/%d], Loss: %.4f' % (epoch+1, 1000, loss.item()))
-
-# 使用模型进行预测
-with torch.no_grad():
-    outputs = net(x)
-    predicted = (outputs >= 0.5).float()
-
-    # 打印预测结果和真实标签
-    print('Predicted: ', predicted)
-    print('Labels:    ', y)
+plt.show()
