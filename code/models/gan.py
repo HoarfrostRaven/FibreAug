@@ -15,6 +15,8 @@ class Generator(nn.Module):
         h = target_image_size[1] // s
         c = num_filters * s
 
+        self.initial = nn.Linear(self.z_dim, c * w * h)
+
         self.generator = nn.Sequential()
         self.generator.add_module(
             name='initial',
@@ -46,24 +48,23 @@ class Generator(nn.Module):
             c = c // 2
 
         # Convolution, change num of changnels
-        self.generator.add_module(
-            name='final',
-            module=nn.Conv2d(
-                in_channels=c,
-                out_channels=target_image_size[0],
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias=False
-            )
-        )
-        self.generator.add_module(
-            name='output',
-            module=nn.Tanh()
-        )
+        self.final_conv = nn.Conv2d(in_channels=c,
+                                    out_channels=target_image_size[0],
+                                    kernel_size=3,
+                                    stride=1,
+                                    padding=1,
+                                    bias=False
+                                    )
+        self.output_act = nn.Tanh()
 
     def forward(self, x):
+        x = self.initial(x)
+        # Reshape the output
+        x = x.view(x.shape[0], -1, self.target_image_size[1] // (2 **
+                   self.num_layers), self.target_image_size[2] // (2 ** self.num_layers))
         x = self.generator(x)
+        x = self.final_conv(x)
+        x = self.output_act(x)
         return x
 
 
@@ -88,7 +89,7 @@ class Discriminator(nn.Module):
             layers.extend(
                 (
                     nn.Conv2d(c, num_filters_list[i], 4, 2, 1),  # size/2
-                    nn.BatchNorm2d(num_filters_list[i]),
+                    nn.LayerNorm([num_filters_list[i], h_out, w_out]),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
@@ -102,7 +103,6 @@ class Discriminator(nn.Module):
             (
                 nn.Flatten(),
                 nn.Linear(in_features, 1),
-                nn.Sigmoid()
             )
         )
         self.discriminator = nn.Sequential(*layers)
