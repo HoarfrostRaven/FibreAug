@@ -1,4 +1,5 @@
 import os
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -18,7 +19,10 @@ class MyDataset(Dataset):
         image = Image.open(image_path).convert('RGB')
         if self.transform:
             image = self.transform(image)
-        return image
+
+        # Create a dummy label
+        label = torch.zeros(1)
+        return image, label
 
     def __len__(self):
         return len(self.image_paths)

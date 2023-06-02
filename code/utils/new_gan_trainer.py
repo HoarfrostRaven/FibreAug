@@ -6,6 +6,7 @@ from torch.optim import Adam
 from tqdm import tqdm
 import os
 import numpy as np
+from .my_dataset import MyDataset
 
 
 class GANTrainer:
@@ -37,8 +38,9 @@ class GANTrainer:
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ])
-        dataset = datasets.ImageFolder(
-            root=self.data_path, transform=transform)
+        dataset = MyDataset(self.data_path, transform=transform)
+        # dataset = datasets.ImageFolder(
+        #     root=self.data_path, transform=transform)
         dataloader = DataLoader(
             dataset, batch_size=self.batch_size, shuffle=True)
 
@@ -53,9 +55,9 @@ class GANTrainer:
                 # Train discriminator
                 self.discriminator.zero_grad()
                 real_loss = self.criterion(self.discriminator(
-                    real), torch.ones(batch_size, device=self.device))
+                    real), torch.ones(batch_size, 1, device=self.device))
                 fake_loss = self.criterion(self.discriminator(
-                    fake.detach()), torch.zeros(batch_size, device=self.device))
+                    fake.detach()), torch.zeros(batch_size, 1, device=self.device))
                 dis_loss = (real_loss + fake_loss) / 2
                 dis_loss.backward()
                 self.opt_dis.step()
@@ -63,7 +65,7 @@ class GANTrainer:
                 # Train generator
                 self.generator.zero_grad()
                 gen_loss = self.criterion(self.discriminator(
-                    fake), torch.ones(batch_size, device=self.device))
+                    fake), torch.ones(batch_size, 1, device=self.device))
                 gen_loss.backward()
                 self.opt_gen.step()
 

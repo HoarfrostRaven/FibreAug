@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class Generator(nn.Module):
@@ -8,6 +9,7 @@ class Generator(nn.Module):
 
         self.z_dim = z_dim
         self.target_image_size = target_image_size
+        self.num_layers = num_layers
 
         # Determine the size of the input to the first ConvTranspose2d layer
         s = 2 ** num_layers
@@ -18,10 +20,6 @@ class Generator(nn.Module):
         self.initial = nn.Linear(self.z_dim, c * w * h)
 
         self.generator = nn.Sequential()
-        self.generator.add_module(
-            name='initial',
-            module=nn.Linear(self.z_dim, c * w * h)
-        )
 
         for i in range(num_layers):
             # Transposed convolution, h*2, w*2
@@ -58,12 +56,25 @@ class Generator(nn.Module):
         self.output_act = nn.Tanh()
 
     def forward(self, x):
+        x = x.view(-1, self.z_dim)
         x = self.initial(x)
         # Reshape the output
         x = x.view(x.shape[0], -1, self.target_image_size[1] // (2 **
                    self.num_layers), self.target_image_size[2] // (2 ** self.num_layers))
         x = self.generator(x)
         x = self.final_conv(x)
+
+        # Calculate the padding size
+        pad_height = max(0, self.target_image_size[1] - x.size(2))
+        pad_width = max(0, self.target_image_size[2] - x.size(3))
+
+        # Padding
+        x = F.pad(x, (0, pad_width, 0, pad_height))
+
+        # Crop the output if it's larger than the target size
+        if x.size(2) > self.target_image_size[1] or x.size(3) > self.target_image_size[2]:
+            x = x[:, :, :self.target_image_size[1], :self.target_image_size[2]]
+
         x = self.output_act(x)
         return x
 
@@ -77,11 +88,7 @@ class Discriminator(nn.Module):
         self.image_size = image_size
         c, h, w = image_size
 
-        # Determine the size of the input to the first Conv2d layer
         num_layers = len(num_filters_list)
-        s = 2 ** (num_layers - 1)
-        h_out = (h + 2 - 1) // s
-        w_out = (w + 2 - 1) // s
 
         # Convolutional layers
         layers = []
@@ -89,15 +96,14 @@ class Discriminator(nn.Module):
             layers.extend(
                 (
                     nn.Conv2d(c, num_filters_list[i], 4, 2, 1),  # size/2
-                    nn.LayerNorm([num_filters_list[i], h_out, w_out]),
+                    nn.LayerNorm([num_filters_list[i], h //
+                                 (2 ** (i + 1)), w // (2 ** (i + 1))]),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
             c = num_filters_list[i]
-            h_out = (h_out + 2 - 1) // 2
-            w_out = (w_out + 2 - 1) // 2
 
-        in_features = c * h_out * w_out
+        in_features = c * (h // (2 ** num_layers)) * (w // (2 ** num_layers))
 
         layers.extend(
             (
