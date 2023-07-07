@@ -47,7 +47,6 @@ image_pipeline = [
     # image_processor.Rotate(image_input_dir, image_output_dir)
     # image_processor.ShiftScaleRotate(image_input_dir, image_output_dir)
     image_processor.Flip(image_data_dir, image_save_dir)
-    # image_processor.StyleTransfer(image_input_dir, image_output_dir, model_path=config.model_path)
 ]
 
 text_pipeline = [
