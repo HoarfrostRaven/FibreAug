@@ -15,7 +15,9 @@ If you want to extend the functionalities further, you can refer to the content 
 
 ## GAN
 ### GAN & VAE
+
 ## Diffusion model
 ### Why diffusion
+
 ## Hugging Face
 ### Why Hugging Face
