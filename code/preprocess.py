@@ -12,6 +12,7 @@ for filename in os.listdir(folder_path):
         image_path = os.path.join(folder_path, filename)
         image = Image.open(image_path)
         image = image.resize((1024, 768)) # width * height
+        # Convert to numpy array
         image_array = np.array(image)
         image_data.append(image_array)
 
