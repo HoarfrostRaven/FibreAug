@@ -53,11 +53,9 @@ class ResidualConvBlock(nn.Module):
             # Normalize output tensor
             return out / 1.414
 
-        # If not using residual connection, return output of second convolutional layer
         else:
             x1 = self.conv1(x)
-            x2 = self.conv2(x1)
-            return x2
+            return self.conv2(x1)
 
     # Method to get the number of output channels for this block
     def get_out_channels(self):
