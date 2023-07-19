@@ -32,7 +32,7 @@ os.makedirs(test_dir, exist_ok=True)
 
 # Initialize Generator and Discriminator
 generator = gan.Generator(z_dim=100)
-discriminator = gan.Discriminator(image_size=(3, 3024, 4032))
+discriminator = gan.Discriminator(image_size=(3, 1024, 768))
 
 # Create GAN trainer
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
