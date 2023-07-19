@@ -29,7 +29,21 @@ The `gan.py` file in this project builds a simple GAN model that allows adjustin
 However, due to limitations in GPU memory on the server, this network was not able to undergo training. Therefore, we do not have a clear understanding of its performance and have been unable to adjust its parameters based on the results.
 
 ## Diffusion model
-### Why diffusion
+The diffusion model is a probabilistic generative model that aims to model complex data distributions by iteratively applying a diffusion process. It is particularly effective in modeling high-dimensional data such as images and audio.
+
+The underlying principle of the diffusion model is to transform an initial sample (e.g., noise) into a target sample by gradually adding noise at each iteration. The diffusion process starts with a random noise vector and applies a series of transformations, referred to as diffusion steps. In each step, the noise is gradually added to the original sample, creating a sequence of intermediate samples. This process is designed to smoothen and disentangle the high-dimensional data space, allowing the model to capture complex patterns and generate realistic samples.
+
+During training, the diffusion model learns the parameters that govern the diffusion process by maximizing the likelihood of generating the target sample from the initial noise vector. This is typically achieved using maximum likelihood estimation or variational inference techniques. Once trained, the model can generate new samples by running the diffusion process in reverse, starting from a fixed point and iteratively removing noise until the initial noise vector is reached.
+
+The neural network architecture we use for diffusion models is a UNet.
+
+![UNet](https://hoarfrostraven.github.io/2023/06/12/Deep-Learning-Diffusion-Models-Part-2/Model%20Structure.jpg)
+
+The most important thing about UNet is that it takes an image as input and output an image in the same size of the input. What it does is first embeds information about the input into an embedding that compresses all the information in smaller space, so it downsamples with a lot of convolutional layers. And then it upsamples with the same number of upsampling blocks until get the output.
+
+This project integrates multiple running modes, allowing users to choose whether to import pre-trained models, control the output images using prompts, and accelerate the sampling process using DDIM (Denoising Diffusion Implicit Models). These choices can be easily modified in the "test_diffusion_model.ipynb" file to suit the user's preferences.
+
+The model has been proven to function properly on smaller-sized image datasets and delivers satisfactory results. However, due to memory limitations, the performance of the model has not been validated yet for large-scale images as required by the project.
 
 ## Hugging Face
 ### Why Hugging Face
