@@ -1,7 +1,7 @@
 import os
 import cv2
-from utils import image_processor
-from utils import text_processor
+from gan_utils import image_processor
+from gan_utils import text_processor
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 

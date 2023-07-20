@@ -28,7 +28,7 @@ class MyDataset(Dataset):
 
         # Create a dummy label
         label = torch.zeros(1)
-        return image, label
+        return (image, label)
 
     def __len__(self):
         # return len(self.image_paths)
