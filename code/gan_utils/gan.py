@@ -28,7 +28,7 @@ class Generator(nn.Module):
                 module=nn.ConvTranspose2d(
                     in_channels=c,
                     out_channels=c // 2,
-                    kernel_size=4,
+                    kernel_size=3,
                     stride=2,
                     padding=1,
                     bias=False
