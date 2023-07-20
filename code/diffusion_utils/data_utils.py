@@ -10,12 +10,12 @@ class CustomDataset(Dataset):
         self.images_shape = self.images.shape
         print(f"sprite shape: {self.images.shape}")
         
-        self.slabels = None
+        self.labels = None
         self.slabel_shape = -1
         if context_enable:
-            self.slabels = np.load(labels_file_name)
-            print(f"labels shape: {self.slabels.shape}")
-            self.slabel_shape = self.slabels.shape
+            self.labels = np.load(labels_file_name)
+            print(f"labels shape: {self.labels.shape}")
+            self.slabel_shape = self.labels.shape
         
         self.transform = transform
         self.context_enable = context_enable
@@ -30,7 +30,7 @@ class CustomDataset(Dataset):
         if self.transform:
             image = self.transform(self.images[idx])
             if self.context_enable:
-                label = torch.tensor(self.slabels[idx]).to(torch.int64)
+                label = torch.tensor(self.labels[idx]).to(torch.int64)
             else:
                 label = torch.tensor(0).to(torch.int64)
 

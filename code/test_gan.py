@@ -24,7 +24,7 @@ import torch
 
 # Paths and directories
 project_dir = os.path.abspath(os.path.join(os.getcwd()))
-data_dir = os.path.join(project_dir, "dataset", "raw_data", "images")
+data_dir = os.path.join(project_dir, "dataset", "raw_data", "images.npy")
 test_dir = os.path.join(project_dir, "tests", "test0")
 
 # Create directories if they don't exist
