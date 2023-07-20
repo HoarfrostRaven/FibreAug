@@ -5,15 +5,15 @@ from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
-    def __init__(self, sfilename, lfilename, transform, context_enable=False):
-        self.sprites = np.load(sfilename)
-        self.sprites_shape = self.sprites.shape
-        print(f"sprite shape: {self.sprites.shape}")
+    def __init__(self, images_file_name, labels_file_name, transform, context_enable=False):
+        self.images = np.load(images_file_name)
+        self.images_shape = self.images.shape
+        print(f"sprite shape: {self.images.shape}")
         
         self.slabels = None
         self.slabel_shape = -1
         if context_enable:
-            self.slabels = np.load(lfilename)
+            self.slabels = np.load(labels_file_name)
             print(f"labels shape: {self.slabels.shape}")
             self.slabel_shape = self.slabels.shape
         
@@ -22,13 +22,13 @@ class CustomDataset(Dataset):
 
     # Return the number of images in the dataset
     def __len__(self):
-        return len(self.sprites)
+        return len(self.images)
 
     # Get the image and label at a given index
     def __getitem__(self, idx):
         # Return the image and label as a tuple
         if self.transform:
-            image = self.transform(self.sprites[idx])
+            image = self.transform(self.images[idx])
             if self.context_enable:
                 label = torch.tensor(self.slabels[idx]).to(torch.int64)
             else:
@@ -38,7 +38,7 @@ class CustomDataset(Dataset):
 
     def getshapes(self):
         # return shapes of data and labels
-        return self.sprites_shape, self.slabel_shape
+        return self.images_shape, self.slabel_shape
 
 
 transform = transforms.Compose([

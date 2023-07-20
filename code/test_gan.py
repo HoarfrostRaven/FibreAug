@@ -1,7 +1,7 @@
 import os
 import cv2
-from utils import gan
-from utils import gan_trainer
+from gan_utils import gan
+from gan_utils import gan_trainer
 from matplotlib import pyplot as plt
 import torch
 
