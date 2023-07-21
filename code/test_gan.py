@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 project_dir = os.path.abspath(os.path.join(os.getcwd()))
 data_dir = os.path.join(project_dir, "dataset", "sprites_1788_16x16.npy")
 test_dir = os.path.join(project_dir, "tests", "test0")
+checkpoint = os.path.join(test_dir, "checkpoint_40.pth")
 
 # Create directories if they don't exist
 os.makedirs(test_dir, exist_ok=True)
@@ -47,6 +48,9 @@ discriminator = gan.Discriminator(image_size=image_size, num_filters_list = [4])
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 trainer = gan_trainer.GANTrainer(
     generator, discriminator, z_dim=z_dim, dataloader=dataloader, batch_size=batch_size, device=device)
+
+# # Load checkpoint
+# trainer.load_checkpoint(checkpoint)
 
 # Train GAN
 trainer.train(epochs=2, save_dir=test_dir)
