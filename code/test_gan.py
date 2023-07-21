@@ -32,7 +32,10 @@ z_dim = 100
 image_size = (3, 16, 16)
 batch_size = 2
 epochs = 50
+lr_gen = 0.0002
+lr_dis = 0.0001
 
+# Dataset
 transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
@@ -47,7 +50,7 @@ discriminator = gan.Discriminator(image_size=image_size, num_filters_list = [4])
 # Create GAN trainer
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 trainer = gan_trainer.GANTrainer(
-    generator, discriminator, z_dim=z_dim, dataloader=dataloader, batch_size=batch_size, device=device)
+    generator, discriminator, z_dim=z_dim, dataloader=dataloader, batch_size=batch_size, device=device, lr_gen=lr_gen, lr_dis=lr_dis)
 
 # # Load checkpoint
 # trainer.load_checkpoint(checkpoint)
