@@ -44,21 +44,25 @@ dataset = my_dataset.MyDataset(data_dir, transform=transform)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 # Initialize Generator and Discriminator
-generator = gan.Generator(z_dim=z_dim, num_filters=4, num_layers=2, target_image_size=image_size)
-discriminator = gan.Discriminator(image_size=image_size, num_filters_list = [4])
+generator = gan.Generator(z_dim=z_dim, num_filters=64, target_image_size=image_size)
+discriminator = gan.Discriminator(image_size=image_size, num_filters=64)
 
 # Create GAN trainer
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 trainer = gan_trainer.GANTrainer(
     generator, discriminator, z_dim=z_dim, dataloader=dataloader, batch_size=batch_size, device=device, lr_gen=lr_gen, lr_dis=lr_dis)
 
-# # Load checkpoint
-# trainer.load_checkpoint(checkpoint)
+# Load checkpoint
+if os.path.exists(checkpoint):
+    start_epoch = trainer.load_checkpoint(checkpoint) + 1
+else:
+    start_epoch = 0
 
 # Train GAN
-trainer.train(epochs=2, save_dir=test_dir)
+trainer.train(epochs=epochs, save_dir=test_dir, start_epoch=start_epoch)
 
-z = torch.randn(1, z_dim, 1, 1, device=device)
+# Sampling
+z = torch.randn(1, z_dim, device=device)
 output = generator(z)
 
 def visualize(output):

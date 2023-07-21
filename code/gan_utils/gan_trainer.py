@@ -23,17 +23,17 @@ class GANTrainer:
         self.opt_gen = Adam(self.generator.parameters(), lr=lr_gen)
         self.opt_dis = Adam(self.discriminator.parameters(), lr=lr_dis)
 
-    def train(self, epochs, save_dir):
+    def train(self, epochs, save_dir, start_epoch=0):
         # Create a directory if not exists
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-
-        for epoch in range(epochs):
+            
+        epochs += start_epoch
+        for epoch in range(start_epoch, epochs):
             for real, _ in tqdm(self.dataloader, desc=f"Epoch {epoch + 1}"):
                 real = real.to(self.device)
                 batch_size = real.shape[0]
-                z = torch.randn(batch_size, self.z_dim,
-                                1, 1, device=self.device)
+                z = torch.randn(batch_size, self.z_dim, device=self.device)
                 fake = self.generator(z)
 
                 # Train discriminator
@@ -61,6 +61,9 @@ class GANTrainer:
                 'gen_loss': gen_loss.item(),
                 'dis_loss': dis_loss.item()
             }, f"{save_dir}/checkpoint_{epoch}.pth")
+            
+            print("gen_loss: ", gen_loss.item())
+            print("dis_loss: ", dis_loss.item())
 
         print("Training completed!")
 
@@ -71,3 +74,4 @@ class GANTrainer:
             checkpoint['discriminator_state_dict'])
         print(
             f"Loaded checkpoint from epoch {checkpoint['epoch']} with gen_loss={checkpoint['gen_loss']}, dis_loss={checkpoint['dis_loss']}")
+        return checkpoint['epoch']
