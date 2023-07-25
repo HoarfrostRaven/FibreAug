@@ -62,7 +62,8 @@ class Discriminator(nn.Module):
             layers.extend(
                 (
                     nn.Conv2d(c if i == 0 else filters[i-1], filters[i], 4, 2, 1),  # size/2
-                    nn.LayerNorm([filters[i], h // (2 ** (i + 1)), w // (2 ** (i + 1))]),
+                    # nn.LayerNorm([filters[i], h // (2 ** (i + 1)), w // (2 ** (i + 1))]),
+                    nn.BatchNorm2d(filters[i]),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )

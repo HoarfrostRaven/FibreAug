@@ -28,6 +28,8 @@ class GANTrainer:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
             
+        critic_iterations = 5
+        weight_clip = 0.01
         epochs += start_epoch
         for epoch in range(start_epoch, epochs):
             for real, _ in tqdm(self.dataloader, desc=f"Epoch {epoch + 1}"):
@@ -36,22 +38,41 @@ class GANTrainer:
                 z = torch.randn(batch_size, self.z_dim, device=self.device)
                 fake = self.generator(z)
 
-                # Train discriminator
-                self.discriminator.zero_grad()
-                real_loss = self.criterion(self.discriminator(
-                    real), torch.ones(batch_size, 1, device=self.device))
-                fake_loss = self.criterion(self.discriminator(
-                    fake.detach()), torch.zeros(batch_size, 1, device=self.device))
-                dis_loss = (real_loss + fake_loss) / 2
-                dis_loss.backward()
-                self.opt_dis.step()
+                # Train Discriminator
+                for _ in range(critic_iterations):  # default could be 5
+                    self.discriminator.zero_grad()
+                    real_loss = -torch.mean(self.discriminator(real))
+                    fake_loss = torch.mean(self.discriminator(fake.detach()))
+                    dis_loss = real_loss + fake_loss
+                    dis_loss.backward()
+                    self.opt_dis.step()
 
-                # Train generator
+                    # Clip weights of discriminator
+                    for p in self.discriminator.parameters():
+                        p.data.clamp_(-weight_clip, weight_clip)  # weight_clip could be 0.01
+
+                # Train Generator
                 self.generator.zero_grad()
-                gen_loss = self.criterion(self.discriminator(
-                    fake), torch.ones(batch_size, 1, device=self.device))
+                gen_loss = -torch.mean(self.discriminator(fake))
                 gen_loss.backward()
                 self.opt_gen.step()
+
+#                 # Train discriminator
+#                 self.discriminator.zero_grad()
+#                 real_loss = self.criterion(self.discriminator(
+#                     real), torch.ones(batch_size, 1, device=self.device))
+#                 fake_loss = self.criterion(self.discriminator(
+#                     fake.detach()), torch.zeros(batch_size, 1, device=self.device))
+#                 dis_loss = (real_loss + fake_loss) / 2
+#                 dis_loss.backward()
+#                 self.opt_dis.step()
+
+#                 # Train generator
+#                 self.generator.zero_grad()
+#                 gen_loss = self.criterion(self.discriminator(
+#                     fake), torch.ones(batch_size, 1, device=self.device))
+#                 gen_loss.backward()
+#                 self.opt_gen.step()
 
             # Save losses and fake samples
             torch.save({
