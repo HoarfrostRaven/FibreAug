@@ -34,6 +34,7 @@ batch_size = 2
 epochs = 50
 lr_gen = 0.0002
 lr_dis = 0.0001
+train_enable = False
 
 # Dataset
 transform = transforms.Compose([
@@ -59,7 +60,8 @@ else:
     start_epoch = 0
 
 # Train GAN
-trainer.train(epochs=epochs, save_dir=test_dir, start_epoch=start_epoch)
+if train_enable:
+    trainer.train(epochs=epochs, save_dir=test_dir, start_epoch=start_epoch)
 
 # Sampling
 z = torch.randn(1, z_dim, device=device)
