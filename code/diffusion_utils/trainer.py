@@ -5,12 +5,11 @@ import os
 
 
 class Trainer:
-    def __init__(self, model, dataloader, optim, timesteps, n_epoch, lrate, device, beta1=1e-4, beta2=0.02, context_enable=False, save_dir=None):
+    def __init__(self, model, dataloader, optim, timesteps, lrate, device, beta1=1e-4, beta2=0.02, context_enable=False, save_dir=None):
         self.model = model
         self.dataloader = dataloader
         self.optim = optim
         self.timesteps = timesteps
-        self.n_epoch = n_epoch
         self.lrate = lrate
         self.device = device
         self.context_enable = context_enable
@@ -27,18 +26,20 @@ class Trainer:
     def perturb_input(self, x, t, noise):
         return self.ab_t.sqrt()[t, None, None, None] * x + (1 - self.ab_t[t, None, None, None]) * noise
 
-    def train(self):
+    def train(self, n_epoch, start_epoch=0):
         # set into train mode
         self.model.train()
-
-        for ep in range(self.n_epoch):
+        
+        n_epoch += start_epoch
+        for ep in range(start_epoch, n_epoch):
             print(f'epoch {ep}')
 
             # linearly decay learning rate
             self.optim.param_groups[0]['lr'] = self.lrate * \
-                (1 - ep / self.n_epoch)
+                (1 - ep / n_epoch)
 
             pbar = tqdm(self.dataloader, mininterval=2)
+            total_loss = 0.0
             for x, c in pbar:  # x: images  c: context
                 self.optim.zero_grad()
                 x = x.to(self.device)
@@ -67,11 +68,31 @@ class Trainer:
                 loss.backward()
 
                 self.optim.step()
+                
+                total_loss += loss.item()
 
+            # Save the average loss for the epoch
+            epoch_loss = total_loss / len(self.dataloader)
+            
             # save model periodically
-            if self.save_dir is not None and (ep % 4 == 0 or ep == int(self.n_epoch - 1)):
+            if self.save_dir is not None and (ep % 4 == 0 or ep == int(n_epoch - 1)):
                 if not os.path.exists(self.save_dir):
                     os.mkdir(self.save_dir)
-                torch.save(self.model.state_dict(),
-                           f"{self.save_dir}context_model_{ep}.pth")
-                print(f"saved model at {self.save_dir}context_model_{ep}.pth")
+                    
+                checkpoint = {
+                    'epoch': ep,
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': self.optim.state_dict(),
+                    'loss': epoch_loss
+                }
+                
+                torch.save(checkpoint, os.path.join(self.save_dir, f"checkpoint_{ep}.pth"))
+        
+        print("Training completed!")
+        
+    def load_checkpoint(self, checkpoint_path):
+        checkpoint = torch.load(checkpoint_path)
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.optim.load_state_dict(checkpoint['optimizer_state_dict'])
+        print(f"Loaded checkpoint from epoch {checkpoint['epoch']} with loss={checkpoint['loss']}")
+        return checkpoint['epoch']
