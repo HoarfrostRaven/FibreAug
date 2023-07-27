@@ -26,7 +26,7 @@ During training, the generator and discriminator engage in a competitive process
 
 The `gan.py` file in this project builds a simple GAN model that allows adjusting the network structure through various parameters to adapt to different tasks or achieve better results by appropriately tuning the parameters for the same task. Additionally, the `gan_trainer.py` file creates a trainer specifically designed for GAN networks. By providing a properly configured GAN network to the trainer, it can automatically train the network, making it more user-friendly.
 
-However, due to limitations in GPU memory on the server, this network was not able to undergo training. Therefore, we do not have a clear understanding of its performance and have been unable to adjust its parameters based on the results.
+En raison de contraintes de mémoire GPU, on n'a pas pu effectuer les tests sur l'ensemble de données cible. On a utilisé un ensemble de données d'images de pixels de taille 16*16 pour les tests. On a testé les fonctions de perte BCELoss et Wasserstein, mais même après avoir entraîné plus de 100 epochs, les résultats n'étaient toujours pas satisfaisants.
 
 ## Diffusion model
 The diffusion model is a probabilistic generative model that aims to model complex data distributions by iteratively applying a diffusion process. It is particularly effective in modeling high-dimensional data such as images and audio.
