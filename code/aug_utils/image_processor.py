@@ -398,23 +398,6 @@ class ControlNet(ImageProcessor):
 
                 # Convert dictionary to JSON string and return
                 return json.dumps(info_dict, indent=4)
-
-# class GAN(ImageProcessor):
-#         def __init__(self,
-#                      input_path,
-#                      output_path,
-#                      generator,
-#                      checkpoint,
-#                      device
-#                      ):
-#                 self.checkpoint = checkpoint
-#                 self.device = device
-#                 self.generator = generator
-                
-#                 checkpoint = torch.load(checkpoint)
-#                 self.generator.load_state_dict(checkpoint['generator_state_dict'])
-                
-#                 super().__init__(input_path, os.path.join(output_path, "GAN"))
                 
 
 # class StyleTransfer(ImageProcessor):
