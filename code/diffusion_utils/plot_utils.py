@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 from torchvision.utils import save_image, make_grid
@@ -39,7 +40,7 @@ def plot_grid(x, n_sample, n_rows, save_dir, w):
     ncols = n_sample//n_rows
     # curiously, nrow is number of columns.. or number of items in the row.
     grid = make_grid(norm_torch(x), nrow=ncols)
-    save_image(grid, f"{save_dir}run_image_w{w}.png")
+    save_image(grid, os.path.join(save_dir, f"run_image_w{w}.png"))
     print(f"saved image at {save_dir}run_image_w{w}.png")
     return grid
 
@@ -70,7 +71,7 @@ def plot_sample(x_gen_store, n_sample, nrows, save_dir, fn,  w, save=False):
                         nsx_gen_store],  interval=200, blit=False, repeat=True, frames=nsx_gen_store.shape[0])
     plt.close()
     if save:
-        ani.save(f"{save_dir}{fn}_w{w}.gif",
+        ani.save(os.path.join(save_dir, f"{fn}_w{w}.gif"),
                  dpi=100, writer=PillowWriter(fps=5))
         print(f"saved gif at {save_dir}{fn}_w{w}.gif")
     return ani

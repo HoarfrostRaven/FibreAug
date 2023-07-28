@@ -332,72 +332,90 @@ class Flip(ImageProcessor):
 
 
 class ControlNet(ImageProcessor):
-    def __init__(self,
-                 input_path,
-                 output_path,
-                 checkpoint_controlnet,
-                 checkpoint_diffusion_model,
-                 prompt,
-                 low_threshold,
-                 high_threshold,
-                 device,
-                 seed = 33,
-                 num_inference_steps = 20
-                 ):
-        self.checkpoint_controlnet = checkpoint_controlnet
-        self.checkpoint_diffusion_model = checkpoint_diffusion_model
-        self.prompt = prompt
-        self.low_threshold = low_threshold
-        self.high_threshold = high_threshold
-        self.device = device
-        self.seed = seed
-        self.num_inference_steps = num_inference_steps
-        
-        controlnet = ControlNetModel.from_pretrained(self.checkpoint_controlnet, torch_dtype=torch.float16)
-        self.pipe = StableDiffusionControlNetPipeline.from_pretrained(self.checkpoint_diffusion_model, 
-                                                                 controlnet=controlnet, 
-                                                                 torch_dtype=torch.float16)
-        self.pipe = self.pipe.to(self.device)
-        self.pipe.scheduler = UniPCMultistepScheduler.from_config(self.pipe.scheduler.config)
-        self.pipe.enable_model_cpu_offload()
-        self.generator = torch.manual_seed(self.seed)
-        
-        super().__init__(input_path, os.path.join(output_path, "ControlNet"))
+        def __init__(self,
+                        input_path,
+                        output_path,
+                        checkpoint_controlnet,
+                        checkpoint_diffusion_model,
+                        prompt,
+                        low_threshold,
+                        high_threshold,
+                        device,
+                        seed = 33,
+                        num_inference_steps = 20
+                        ):
+                self.checkpoint_controlnet = checkpoint_controlnet
+                self.checkpoint_diffusion_model = checkpoint_diffusion_model
+                self.prompt = prompt
+                self.low_threshold = low_threshold
+                self.high_threshold = high_threshold
+                self.device = device
+                self.seed = seed
+                self.num_inference_steps = num_inference_steps
+                
+                controlnet = ControlNetModel.from_pretrained(self.checkpoint_controlnet, torch_dtype=torch.float16)
+                self.pipe = StableDiffusionControlNetPipeline.from_pretrained(self.checkpoint_diffusion_model, 
+                                                                        controlnet=controlnet, 
+                                                                        torch_dtype=torch.float16)
+                self.pipe = self.pipe.to(self.device)
+                self.pipe.scheduler = UniPCMultistepScheduler.from_config(self.pipe.scheduler.config)
+                self.pipe.enable_model_cpu_offload()
+                self.generator = torch.manual_seed(self.seed)
+                
+                super().__init__(input_path, os.path.join(output_path, "ControlNet"))
 
-    def _process(self, image):
-        if self.device != 'cuda':
-                return -1
-        
-        image = np.array(image)
-        image = cv2.Canny(image, self.low_threshold, self.high_threshold)
-        image = image[:, :, None]
-        image = np.concatenate([image, image, image], axis=2)
-        control_image = PIL.Image.fromarray(image)
-        
-        image = self.pipe(self.prompt, 
-                          num_inference_steps=self.num_inference_steps, 
-                          generator=self.generator, 
-                          image=control_image).images[0]
-        return image
+        def _process(self, image):
+                if self.device != 'cuda':
+                        return -1
+                
+                image = np.array(image)
+                image = cv2.Canny(image, self.low_threshold, self.high_threshold)
+                image = image[:, :, None]
+                image = np.concatenate([image, image, image], axis=2)
+                control_image = PIL.Image.fromarray(image)
+                
+                image = self.pipe(self.prompt, 
+                                num_inference_steps=self.num_inference_steps, 
+                                generator=self.generator, 
+                                image=control_image).images[0]
+                return image
 
-    def _process_info(self):
-        info_dict = {"ControlNet": []}
+        def _process_info(self):
+                info_dict = {"ControlNet": []}
 
-        # Add information for each parameter
-        info = [{"key": "input_path", "value": self.input_path},
-                {"key": "output_path", "value": self.output_path},
-                {"key": "checkpoint_controlnet", "value": self.checkpoint_controlnet},
-                {"key": "checkpoint_diffusion_model", "value": self.checkpoint_diffusion_model},
-                {"key": "prompt", "value": self.prompt},
-                {"key": "low_threshold", "value": self.low_threshold},
-                {"key": "high_threshold", "value": self.high_threshold},
-                {"key": "device", "value": self.device},
-                {"key": "seed", "value": self.seed},
-                {"key": "num_inference_steps", "value": self.num_inference_steps}]
-        info_dict["ControlNet"].extend(info)
+                # Add information for each parameter
+                info = [{"key": "input_path", "value": self.input_path},
+                        {"key": "output_path", "value": self.output_path},
+                        {"key": "checkpoint_controlnet", "value": self.checkpoint_controlnet},
+                        {"key": "checkpoint_diffusion_model", "value": self.checkpoint_diffusion_model},
+                        {"key": "prompt", "value": self.prompt},
+                        {"key": "low_threshold", "value": self.low_threshold},
+                        {"key": "high_threshold", "value": self.high_threshold},
+                        {"key": "device", "value": self.device},
+                        {"key": "seed", "value": self.seed},
+                        {"key": "num_inference_steps", "value": self.num_inference_steps}]
+                info_dict["ControlNet"].extend(info)
 
-        # Convert dictionary to JSON string and return
-        return json.dumps(info_dict, indent=4)
+                # Convert dictionary to JSON string and return
+                return json.dumps(info_dict, indent=4)
+
+# class GAN(ImageProcessor):
+#         def __init__(self,
+#                      input_path,
+#                      output_path,
+#                      generator,
+#                      checkpoint,
+#                      device
+#                      ):
+#                 self.checkpoint = checkpoint
+#                 self.device = device
+#                 self.generator = generator
+                
+#                 checkpoint = torch.load(checkpoint)
+#                 self.generator.load_state_dict(checkpoint['generator_state_dict'])
+                
+#                 super().__init__(input_path, os.path.join(output_path, "GAN"))
+                
 
 # class StyleTransfer(ImageProcessor):
 #     def __init__(self, input_path, output_path, model_path):
