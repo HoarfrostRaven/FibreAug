@@ -84,12 +84,15 @@ class UnetUp(nn.Module):
         self.model = nn.Sequential(*layers)
 
     def forward(self, x, skip):
+        # print(f"UnetUp forward: x {x.shape} skip {skip.shape}")
         # Concatenate the input tensor x with the skip connection tensor along the channel dimension
-        x = torch.cat((x, skip), 1)
+        x1 = torch.cat((x, skip), 1)
 
         # Pass the concatenated tensor through the sequential model and return the output
-        x = self.model(x)
-        return x
+        x2 = self.model(x1)
+        
+        # print(f"UnetUp forward: x1 {x1.shape} out {x2.shape}")
+        return x2
 
 
 class UnetDown(nn.Module):
@@ -107,7 +110,9 @@ class UnetDown(nn.Module):
 
     def forward(self, x):
         # Pass the input through the sequential model and return the output
-        return self.model(x)
+        out = self.model(x)
+        # print(f"UnetDown forward: in {x.shape} out {out.shape}")
+        return out
 
 
 class EmbedFC(nn.Module):
@@ -167,8 +172,9 @@ class ContextUnet(nn.Module):
 
         # Initialize the up-sampling path of the U-Net with three levels
         self.up0 = nn.Sequential(
-            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat,
-                               self.w//4, self.h//4),  # up-sample
+            # nn.ConvTranspose2d(2 * n_feat, 2 * n_feat,
+            #                    self.w//4, self.h//4),  # up-sample
+            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, 4, 4),  # up-sample, 4 from self.to_vec, AvgPool2d((4))
             nn.GroupNorm(8, 2 * n_feat),  # normalize
             nn.ReLU(),
         )
@@ -201,6 +207,7 @@ class ContextUnet(nn.Module):
 
         # convert the feature maps to a vector and apply an activation
         hiddenvec = self.to_vec(down2)
+        # print(f"ContextUnet forward: hiddenvec {hiddenvec.shape}")
 
         # mask out context if context_mask == 1
         if c is None:
@@ -215,7 +222,9 @@ class ContextUnet(nn.Module):
         # print(f"uunet forward: cemb1 {cemb1.shape}. temb1 {temb1.shape}, cemb2 {cemb2.shape}. temb2 {temb2.shape}")
 
         up1 = self.up0(hiddenvec)
+        # print(f"ContextUnet forward: up1 {up1.shape}")
         up2 = self.up1(cemb1*up1 + temb1, down2)  # add and multiply embeddings
+        # print(f"ContextUnet forward: up2 {up2.shape}")
         up3 = self.up2(cemb2*up2 + temb2, down1)
         out = self.out(torch.cat((up3, x), 1))
         return out
