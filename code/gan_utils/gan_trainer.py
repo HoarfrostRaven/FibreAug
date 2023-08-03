@@ -37,7 +37,7 @@ class GANTrainer:
                 batch_size = real.shape[0]
                 z = torch.randn(batch_size, self.z_dim, device=self.device)
                 fake = self.generator(z)
-
+                
                 # Train Discriminator
                 for _ in range(critic_iterations):  # default could be 5
                     self.discriminator.zero_grad()

@@ -86,3 +86,17 @@ def show_images(imgs, nrow=2):
         ax.set_yticks([])
         ax.imshow(img)
     plt.show()
+
+
+def plot_final_frame(x_gen_store, frame_index, sample_index, save_dir=None):
+    # change to Numpy image format (h,w,channels) vs (channels,h,w)
+    sx_gen_store = np.moveaxis(x_gen_store, 2, 4)
+    # unity norm to put in range [0,1] for np.imshow
+    nsx_gen_store = norm_all(sx_gen_store, sx_gen_store.shape[0], sx_gen_store.shape[1])
+
+    my_sample = nsx_gen_store[frame_index][sample_index]
+    plt.figure(figsize=(5, 5))
+    plt.axis('off')
+    plt.imshow(my_sample)  # Transpose the axes to match the RGB format
+    if save_dir:
+        plt.savefig(os.path.join(save_dir, f"my_sample_{frame_index}_{sample_index}.jpg"))

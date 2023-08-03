@@ -73,6 +73,7 @@ class Trainer:
 
             # Save the average loss for the epoch
             epoch_loss = total_loss / len(self.dataloader)
+            print(f"Loss: {epoch_loss}")
             
             # save model periodically
             if self.save_dir is not None and (ep % 4 == 0 or ep == int(n_epoch - 1)):

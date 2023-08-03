@@ -8,15 +8,6 @@ import torch
 import numpy as np
 from matplotlib import pyplot as plt
 
-# # test the code
-# project_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
-# images = np.load(os.path.join(project_dir, "dataset", "sprites_1788_16x16.npy"))
-# image = images[0]
-# # visualize
-# plt.figure(figsize=(5, 5))
-# plt.axis('off')
-# plt.imshow(image)
-
 
 # Paths and directories
 project_dir = os.path.abspath(os.path.join(os.getcwd()))
@@ -26,6 +17,16 @@ checkpoint = os.path.join(test_dir, "checkpoint_40.pth")
 
 # Create directories if they don't exist
 os.makedirs(test_dir, exist_ok=True)
+
+
+# # test the code
+# images = np.load(data_dir)
+# image = images[0]
+# # visualize
+# plt.figure(figsize=(5, 5))
+# plt.axis('off')
+# plt.imshow(image)
+
 
 # Config
 z_dim = 100
@@ -67,19 +68,24 @@ if train_enable:
 z = torch.randn(1, z_dim, device=device)
 output = generator(z)
 
-def visualize(output):
+def visualize(output, save_path=None):
     # Move tensor to CPU and convert to Numpy array
     image = output.cpu().detach().numpy()
 
-    # If your image is in [C, H, W] format you might need to transpose it to [H, W, C]
+    # If image is in [C, H, W] format, need to transpose it to [H, W, C]
     if image.shape[0] in [3, 4]:
         image = image.transpose(1, 2, 0)
-
-    # If your image has pixel values between [0, 1], you might need to rescale them to [0, 255]
+        
+    # If image has pixel values between [0, 1], need to rescale them to [0, 255]
     if image.max() <= 1.0:
         image *= 255
-
+    
     plt.imshow(image.astype('uint8'))
+    
+    # If save_path is provided, save the image to the specified path
+    if save_path:
+        plt.savefig(save_path)
+
     plt.show()
 
-visualize(output[0])
+visualize(output[0], os.path.join(test_dir, "result.png"))
