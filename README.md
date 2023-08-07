@@ -18,7 +18,7 @@ If you want to extend the functionalities further, you can refer to the content 
 ## GANs
 Generative Adversarial Networks (GANs) are a class of machine learning models that consist of two components: a generator and a discriminator. The primary goal of GANs is to generate new data samples that resemble a given training dataset.
 
-![GANs](https://github.com/HoarfrostRaven/FibreAug/blob/main/images/basic_gan.PNG?raw=true)
+![GANs](https://github.com/HoarfrostRaven/FibreAug/blob/main/readme_images/basic_gan.PNG?raw=true)
 
 The generator is responsible for creating synthetic data samples. Initially, it generates random noise as input and tries to generate samples that resemble the training data. The discriminator, on the other hand, acts as a critic and tries to distinguish between real and generated samples.
 
