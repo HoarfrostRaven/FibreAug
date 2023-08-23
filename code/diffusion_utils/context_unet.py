@@ -198,12 +198,15 @@ class ContextUnet(nn.Module):
         c : (batch, n_classes)    : context label
         """
         # x is the input image, c is the context label, t is the timestep, context_mask says which samples to block the context on
-
+        # print(f"ContextUnet forward: input {x.shape}")
         # pass the input image through the initial convolutional layer
         x = self.init_conv(x)
+        # print(f"ContextUnet forward: init_conv {x.shape}")
         # pass the result through the down-sampling path
         down1 = self.down1(x)  # [10, 256, 8, 8]
+        # print(f"ContextUnet forward: down1 {down1.shape}")
         down2 = self.down2(down1)  # [10, 256, 4, 4]
+        # print(f"ContextUnet forward: down2 {down2.shape}")
 
         # convert the feature maps to a vector and apply an activation
         hiddenvec = self.to_vec(down2)
@@ -222,9 +225,11 @@ class ContextUnet(nn.Module):
         # print(f"uunet forward: cemb1 {cemb1.shape}. temb1 {temb1.shape}, cemb2 {cemb2.shape}. temb2 {temb2.shape}")
 
         up1 = self.up0(hiddenvec)
-        # print(f"ContextUnet forward: up1 {up1.shape}")
+        # print(f"ContextUnet forward: up0 {up1.shape}")
         up2 = self.up1(cemb1*up1 + temb1, down2)  # add and multiply embeddings
-        # print(f"ContextUnet forward: up2 {up2.shape}")
+        # print(f"ContextUnet forward: up1 {up2.shape}")
         up3 = self.up2(cemb2*up2 + temb2, down1)
+        # print(f"ContextUnet forward: up2 {up3.shape}")
         out = self.out(torch.cat((up3, x), 1))
+        # print(f"ContextUnet forward: out {out.shape}")
         return out
